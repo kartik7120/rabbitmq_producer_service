@@ -70,8 +70,6 @@ func main() {
 		return
 	}
 
-	fmt.Println("Message published successfully to payment_service_success queue.")
-
 	<-ch
 
 	fmt.Println("Shutting down RabbitMQ Producer Service gracefully...")

@@ -563,9 +563,15 @@ func (x *Unlock_Seats_Response) GetError() string {
 }
 
 type Send_Mail_Producer_Request struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	PhoneNumber   string                 `protobuf:"bytes,2,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// string email = 1;
+	// string phone_number = 2;
+	To            string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
+	Name          string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Text          string `protobuf:"bytes,5,opt,name=text,proto3" json:"text,omitempty"`
+	Html          string `protobuf:"bytes,6,opt,name=html,proto3" json:"html,omitempty"`
+	Category      string `protobuf:"bytes,7,opt,name=category,proto3" json:"category,omitempty"`
+	Subject       string `protobuf:"bytes,8,opt,name=subject,proto3" json:"subject,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -600,16 +606,44 @@ func (*Send_Mail_Producer_Request) Descriptor() ([]byte, []int) {
 	return file_producer_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *Send_Mail_Producer_Request) GetEmail() string {
+func (x *Send_Mail_Producer_Request) GetTo() string {
 	if x != nil {
-		return x.Email
+		return x.To
 	}
 	return ""
 }
 
-func (x *Send_Mail_Producer_Request) GetPhoneNumber() string {
+func (x *Send_Mail_Producer_Request) GetName() string {
 	if x != nil {
-		return x.PhoneNumber
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Send_Mail_Producer_Request) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *Send_Mail_Producer_Request) GetHtml() string {
+	if x != nil {
+		return x.Html
+	}
+	return ""
+}
+
+func (x *Send_Mail_Producer_Request) GetCategory() string {
+	if x != nil {
+		return x.Category
+	}
+	return ""
+}
+
+func (x *Send_Mail_Producer_Request) GetSubject() string {
+	if x != nil {
+		return x.Subject
 	}
 	return ""
 }
@@ -1162,10 +1196,14 @@ const file_producer_service_proto_rawDesc = "" +
 	"\x14Unlock_Seats_Request\x12\x18\n" +
 	"\aseatIds\x18\x01 \x03(\x05R\aseatIds\"-\n" +
 	"\x15Unlock_Seats_Response\x12\x14\n" +
-	"\x05error\x18\x01 \x01(\tR\x05error\"U\n" +
-	"\x1aSend_Mail_Producer_Request\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12!\n" +
-	"\fphone_number\x18\x02 \x01(\tR\vphoneNumber\"3\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error\"\xaa\x01\n" +
+	"\x1aSend_Mail_Producer_Request\x12\x0e\n" +
+	"\x02to\x18\x03 \x01(\tR\x02to\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x12\n" +
+	"\x04text\x18\x05 \x01(\tR\x04text\x12\x12\n" +
+	"\x04html\x18\x06 \x01(\tR\x04html\x12\x1a\n" +
+	"\bcategory\x18\a \x01(\tR\bcategory\x12\x18\n" +
+	"\asubject\x18\b \x01(\tR\asubjectJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"3\n" +
 	"\x1bSend_Mail_Producer_Response\x12\x14\n" +
 	"\x05error\x18\x01 \x01(\tR\x05error2\x9f\x04\n" +
 	"\x17rabbitmqProducerService\x12\x9d\x01\n" +

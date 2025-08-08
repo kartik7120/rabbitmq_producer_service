@@ -235,13 +235,7 @@ func (r *Rabbitmq_Producer_Service) Send_Mail_Producer(ctx context.Context, in *
 	done := make(chan error, 1)
 
 	go func() {
-		err := r.Producer.Send_Mail_Producer(struct {
-			Email        string
-			Phone_number string
-		}{
-			Email:        in.Email,
-			Phone_number: in.PhoneNumber,
-		})
+		err := r.Producer.Send_Mail_Producer(in)
 		done <- err
 	}()
 

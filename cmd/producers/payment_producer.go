@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	rabbitmq_producer "github.com/kartik7120/booking_rabbitmq_producer_service/cmd/grpcServer"
 	"github.com/kartik7120/booking_rabbitmq_producer_service/cmd/models"
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -151,7 +152,7 @@ func (p *Producer) Lock_Seats(seatsIds []int) error {
 		"lock_seats",
 		"lock_seats_key",
 		false,
-		true,
+		false,
 		amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        bodyBytes,
@@ -225,7 +226,7 @@ func (p *Producer) Unlock_Seats(seatsIds []int) error {
 		"unlock_seats",
 		"unlock_seats_key",
 		false,
-		true,
+		false,
 		amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        bodyBytes,
@@ -244,10 +245,7 @@ func (p *Producer) Unlock_Seats(seatsIds []int) error {
 
 // Send email generation
 
-func (p *Producer) Send_Mail_Producer(contactInfo struct {
-	Email        string
-	Phone_number string
-}) error {
+func (p *Producer) Send_Mail_Producer(contactInfo *rabbitmq_producer.Send_Mail_Producer_Request) error {
 
 	err := p.Conn.ExchangeDeclare(
 		"send_mail",
@@ -264,7 +262,7 @@ func (p *Producer) Send_Mail_Producer(contactInfo struct {
 	}
 
 	q, err := p.Conn.QueueDeclare(
-		"send_mail_queue",
+		"send_mail_queue2",
 		true,
 		false,
 		false,
@@ -302,7 +300,7 @@ func (p *Producer) Send_Mail_Producer(contactInfo struct {
 		"send_mail",
 		"send_mail_key",
 		false,
-		true,
+		false,
 		amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        bodyBytes,

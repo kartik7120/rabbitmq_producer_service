@@ -114,12 +114,20 @@ message Unlock_Seats_Response {
 }
 
 message Send_Mail_Producer_Request {
-  string email = 1;
-  string phone_number = 2;
+  // string email = 1;
+  // string phone_number = 2;
+  string to = 3;
+  string name = 4;
+  string text = 5;
+  string html = 6;
+  string category = 7;
+  string subject = 8;
+  reserved 1;
+  reserved 2;
 }
 
 message Send_Mail_Producer_Response {
-    string error = 1;
+  string error = 1;
 }
 
 service rabbitmqProducerService {
