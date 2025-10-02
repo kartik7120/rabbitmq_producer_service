@@ -23,6 +23,7 @@ const (
 	RabbitmqProducerService_Lock_Seats_FullMethodName                       = "/rabbitmq_producer_service.rabbitmqProducerService/Lock_Seats"
 	RabbitmqProducerService_Unlock_Seats_FullMethodName                     = "/rabbitmq_producer_service.rabbitmqProducerService/Unlock_Seats"
 	RabbitmqProducerService_Send_Mail_Producer_FullMethodName               = "/rabbitmq_producer_service.rabbitmqProducerService/Send_Mail_Producer"
+	RabbitmqProducerService_Payment_Service_Failure_Producer_FullMethodName = "/rabbitmq_producer_service.rabbitmqProducerService/Payment_Service_Failure_Producer"
 )
 
 // RabbitmqProducerServiceClient is the client API for RabbitmqProducerService service.
@@ -33,6 +34,7 @@ type RabbitmqProducerServiceClient interface {
 	Lock_Seats(ctx context.Context, in *Lock_Seats_Request, opts ...grpc.CallOption) (*Lock_Seats_Response, error)
 	Unlock_Seats(ctx context.Context, in *Unlock_Seats_Request, opts ...grpc.CallOption) (*Unlock_Seats_Response, error)
 	Send_Mail_Producer(ctx context.Context, in *Send_Mail_Producer_Request, opts ...grpc.CallOption) (*Send_Mail_Producer_Response, error)
+	Payment_Service_Failure_Producer(ctx context.Context, in *Payment_Service_Producer_Request, opts ...grpc.CallOption) (*Payment_Service_Producer_Response, error)
 }
 
 type rabbitmqProducerServiceClient struct {
@@ -83,6 +85,16 @@ func (c *rabbitmqProducerServiceClient) Send_Mail_Producer(ctx context.Context, 
 	return out, nil
 }
 
+func (c *rabbitmqProducerServiceClient) Payment_Service_Failure_Producer(ctx context.Context, in *Payment_Service_Producer_Request, opts ...grpc.CallOption) (*Payment_Service_Producer_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Payment_Service_Producer_Response)
+	err := c.cc.Invoke(ctx, RabbitmqProducerService_Payment_Service_Failure_Producer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RabbitmqProducerServiceServer is the server API for RabbitmqProducerService service.
 // All implementations must embed UnimplementedRabbitmqProducerServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type RabbitmqProducerServiceServer interface {
 	Lock_Seats(context.Context, *Lock_Seats_Request) (*Lock_Seats_Response, error)
 	Unlock_Seats(context.Context, *Unlock_Seats_Request) (*Unlock_Seats_Response, error)
 	Send_Mail_Producer(context.Context, *Send_Mail_Producer_Request) (*Send_Mail_Producer_Response, error)
+	Payment_Service_Failure_Producer(context.Context, *Payment_Service_Producer_Request) (*Payment_Service_Producer_Response, error)
 	mustEmbedUnimplementedRabbitmqProducerServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedRabbitmqProducerServiceServer) Unlock_Seats(context.Context, 
 }
 func (UnimplementedRabbitmqProducerServiceServer) Send_Mail_Producer(context.Context, *Send_Mail_Producer_Request) (*Send_Mail_Producer_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Send_Mail_Producer not implemented")
+}
+func (UnimplementedRabbitmqProducerServiceServer) Payment_Service_Failure_Producer(context.Context, *Payment_Service_Producer_Request) (*Payment_Service_Producer_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Payment_Service_Failure_Producer not implemented")
 }
 func (UnimplementedRabbitmqProducerServiceServer) mustEmbedUnimplementedRabbitmqProducerServiceServer() {
 }
@@ -207,6 +223,24 @@ func _RabbitmqProducerService_Send_Mail_Producer_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RabbitmqProducerService_Payment_Service_Failure_Producer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Payment_Service_Producer_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RabbitmqProducerServiceServer).Payment_Service_Failure_Producer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RabbitmqProducerService_Payment_Service_Failure_Producer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RabbitmqProducerServiceServer).Payment_Service_Failure_Producer(ctx, req.(*Payment_Service_Producer_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RabbitmqProducerService_ServiceDesc is the grpc.ServiceDesc for RabbitmqProducerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,6 +263,10 @@ var RabbitmqProducerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Send_Mail_Producer",
 			Handler:    _RabbitmqProducerService_Send_Mail_Producer_Handler,
+		},
+		{
+			MethodName: "Payment_Service_Failure_Producer",
+			Handler:    _RabbitmqProducerService_Payment_Service_Failure_Producer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

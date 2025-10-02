@@ -1205,13 +1205,14 @@ const file_producer_service_proto_rawDesc = "" +
 	"\bcategory\x18\a \x01(\tR\bcategory\x12\x18\n" +
 	"\asubject\x18\b \x01(\tR\asubjectJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"3\n" +
 	"\x1bSend_Mail_Producer_Response\x12\x14\n" +
-	"\x05error\x18\x01 \x01(\tR\x05error2\x9f\x04\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error2\xbf\x05\n" +
 	"\x17rabbitmqProducerService\x12\x9d\x01\n" +
 	" Payment_Service_Webhook_Producer\x12;.rabbitmq_producer_service.Payment_Service_Producer_Request\x1a<.rabbitmq_producer_service.Payment_Service_Producer_Response\x12k\n" +
 	"\n" +
 	"Lock_Seats\x12-.rabbitmq_producer_service.Lock_Seats_Request\x1a..rabbitmq_producer_service.Lock_Seats_Response\x12q\n" +
 	"\fUnlock_Seats\x12/.rabbitmq_producer_service.Unlock_Seats_Request\x1a0.rabbitmq_producer_service.Unlock_Seats_Response\x12\x83\x01\n" +
-	"\x12Send_Mail_Producer\x125.rabbitmq_producer_service.Send_Mail_Producer_Request\x1a6.rabbitmq_producer_service.Send_Mail_Producer_ResponseBRZPgithub.com/kartik7120/rabbitmq_producer_service/cmd/grpcServer;rabbitmq_producerb\x06proto3"
+	"\x12Send_Mail_Producer\x125.rabbitmq_producer_service.Send_Mail_Producer_Request\x1a6.rabbitmq_producer_service.Send_Mail_Producer_Response\x12\x9d\x01\n" +
+	" Payment_Service_Failure_Producer\x12;.rabbitmq_producer_service.Payment_Service_Producer_Request\x1a<.rabbitmq_producer_service.Payment_Service_Producer_ResponseBRZPgithub.com/kartik7120/rabbitmq_producer_service/cmd/grpcServer;rabbitmq_producerb\x06proto3"
 
 var (
 	file_producer_service_proto_rawDescOnce sync.Once
@@ -1260,12 +1261,14 @@ var file_producer_service_proto_depIdxs = []int32{
 	3,  // 12: rabbitmq_producer_service.rabbitmqProducerService.Lock_Seats:input_type -> rabbitmq_producer_service.Lock_Seats_Request
 	5,  // 13: rabbitmq_producer_service.rabbitmqProducerService.Unlock_Seats:input_type -> rabbitmq_producer_service.Unlock_Seats_Request
 	7,  // 14: rabbitmq_producer_service.rabbitmqProducerService.Send_Mail_Producer:input_type -> rabbitmq_producer_service.Send_Mail_Producer_Request
-	2,  // 15: rabbitmq_producer_service.rabbitmqProducerService.Payment_Service_Webhook_Producer:output_type -> rabbitmq_producer_service.Payment_Service_Producer_Response
-	4,  // 16: rabbitmq_producer_service.rabbitmqProducerService.Lock_Seats:output_type -> rabbitmq_producer_service.Lock_Seats_Response
-	6,  // 17: rabbitmq_producer_service.rabbitmqProducerService.Unlock_Seats:output_type -> rabbitmq_producer_service.Unlock_Seats_Response
-	8,  // 18: rabbitmq_producer_service.rabbitmqProducerService.Send_Mail_Producer:output_type -> rabbitmq_producer_service.Send_Mail_Producer_Response
-	15, // [15:19] is the sub-list for method output_type
-	11, // [11:15] is the sub-list for method input_type
+	1,  // 15: rabbitmq_producer_service.rabbitmqProducerService.Payment_Service_Failure_Producer:input_type -> rabbitmq_producer_service.Payment_Service_Producer_Request
+	2,  // 16: rabbitmq_producer_service.rabbitmqProducerService.Payment_Service_Webhook_Producer:output_type -> rabbitmq_producer_service.Payment_Service_Producer_Response
+	4,  // 17: rabbitmq_producer_service.rabbitmqProducerService.Lock_Seats:output_type -> rabbitmq_producer_service.Lock_Seats_Response
+	6,  // 18: rabbitmq_producer_service.rabbitmqProducerService.Unlock_Seats:output_type -> rabbitmq_producer_service.Unlock_Seats_Response
+	8,  // 19: rabbitmq_producer_service.rabbitmqProducerService.Send_Mail_Producer:output_type -> rabbitmq_producer_service.Send_Mail_Producer_Response
+	2,  // 20: rabbitmq_producer_service.rabbitmqProducerService.Payment_Service_Failure_Producer:output_type -> rabbitmq_producer_service.Payment_Service_Producer_Response
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name

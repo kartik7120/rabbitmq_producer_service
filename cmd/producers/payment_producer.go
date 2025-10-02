@@ -95,6 +95,80 @@ func (p *Producer) Payment_Service_Producer(payload models.Payment) error {
 	return nil
 }
 
+func (p *Producer) Payment_Service_Failure_Producer(payload models.Payment) error {
+
+	// Declare exchange
+
+	err := p.Conn.ExchangeDeclare(
+		"payment_failure_exchange",
+		"direct", // exchange type
+		true,     // durable
+		false,    // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
+	)
+
+	if err != nil {
+		return err
+	}
+
+	q, err := p.Conn.QueueDeclare(
+		"payment_service_failure",
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+
+	if err != nil {
+		return err
+	}
+
+	// Bind the queue to the exchange
+
+	err = p.Conn.QueueBind(
+		q.Name,                     // queue name
+		"payment_failure_key",      // routing key
+		"payment_failure_exchange", // exchange name
+		false,                      // no-wait
+		nil,                        // arguments
+	)
+
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	body, err := json.Marshal(payload)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"payment_failure_exchange",
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp091.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(body),
+			Timestamp:   time.Now(),
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Create producer for lock seats and unlock seats
 
 func (p *Producer) Lock_Seats(seatsIds []int) error {

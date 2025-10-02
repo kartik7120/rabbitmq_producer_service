@@ -135,4 +135,5 @@ service rabbitmqProducerService {
   rpc Lock_Seats(Lock_Seats_Request) returns (Lock_Seats_Response);
   rpc Unlock_Seats(Unlock_Seats_Request) returns (Unlock_Seats_Response);
   rpc Send_Mail_Producer(Send_Mail_Producer_Request) returns (Send_Mail_Producer_Response);
+  rpc Payment_Service_Failure_Producer(Payment_Service_Producer_Request) returns (Payment_Service_Producer_Response);
 }
