@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/signal"
 
+	"time"
+
 	rabbitmq_producer "github.com/kartik7120/booking_rabbitmq_producer_service/cmd/grpcServer"
 	"github.com/kartik7120/booking_rabbitmq_producer_service/cmd/producers"
 	"github.com/rabbitmq/amqp091-go"
@@ -13,10 +15,25 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+func connectRabbitMQ(url string, retries int, delay time.Duration) (*amqp091.Connection, error) {
+	var conn *amqp091.Connection
+	var err error
+
+	for i := 0; i < retries; i++ {
+		conn, err = amqp091.Dial(url)
+		if err == nil {
+			return conn, nil
+		}
+		fmt.Printf("Retrying RabbitMQ connection (%d/%d)...\n", i+1, retries)
+		time.Sleep(delay)
+	}
+	return nil, err
+}
+
 func main() {
 	fmt.Println("RabbitMQ Producer Service is running...")
 
-	client, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
+	client, err := connectRabbitMQ("amqp://guest:guest@rabbitmq_booking_app:5672/", 10, 3*time.Second)
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
