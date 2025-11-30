@@ -394,3 +394,38 @@ func (r *Rabbitmq_Producer_Service) Payment_Service_Failure_Producer(ctx context
 		Error: "",
 	}, nil
 }
+
+func (r *Rabbitmq_Producer_Service) Cast_Service_Producer(ctx context.Context, in *rabbitmq_producer.Cast) (*rabbitmq_producer.Cast_Service_Producer_Response, error) {
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+
+	var castInfo models.CastAndCrew
+
+	castInfo.Name = in.Name
+	castInfo.Character = in.CharacterName
+	castInfo.MovieID = uint(in.MovieId)
+	castInfo.PhotoURL = in.PhotoUrl
+	castInfo.Type = in.Type.String()
+
+	go func() {
+		err := r.Producer.Add_Cast_Producer(castInfo)
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return nil, err
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &rabbitmq_producer.Cast_Service_Producer_Response{
+		Error:   "",
+		Message: "Cast message sent to the queue successfully",
+	}, nil
+}

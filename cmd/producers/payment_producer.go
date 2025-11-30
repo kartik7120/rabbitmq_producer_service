@@ -391,3 +391,50 @@ func (p *Producer) Send_Mail_Producer(contactInfo *rabbitmq_producer.Send_Mail_P
 	return nil
 
 }
+
+func (p *Producer) Add_Cast_Producer(cast models.CastAndCrew) error {
+
+	// q, err := p.Conn.QueueDeclare("strapi_create", true, false, false, false, nil)
+
+	// if err != nil {
+	// 	return err
+	// }
+
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	// defer cancel()
+
+	// type Event struct {
+	// 	Action string `json:"action"`
+	// 	Model  string `json:"model"`
+	// 	Data   any    `json:"data"`
+	// }
+
+	// castEvent := Event{
+	// 	Action: "create",
+	// 	Model:  "cast-and-crew",
+	// 	Data:   cast,
+	// }
+
+	// err = p.Conn.PublishWithContext(
+	// 	ctx,
+	// 	"",
+	// 	q.Name,
+	// 	false,
+	// 	false,
+	// 	amqp091.Publishing{
+	// 		ContentType: "application/json",
+	// 		Body:        fmt.Appendf(nil, "%v", castEvent),
+	// 		Timestamp:   time.Now(),
+	// 	},
+	// )
+
+	// if err != nil {
+	// 	return err
+	// }
+
+	// fmt.Println("Published cast creation message in the queue")
+
+	fmt.Println("inside cast and crew producer service")
+
+	return nil
+}
