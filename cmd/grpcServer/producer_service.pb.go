@@ -761,10 +761,11 @@ type Cast struct {
 	CharacterName string                 `protobuf:"bytes,6,opt,name=character_name,json=characterName,proto3" json:"character_name,omitempty"`
 	PhotoUrl      string                 `protobuf:"bytes,7,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
 	MovieId       int32                  `protobuf:"varint,8,opt,name=movie_id,json=movieId,proto3" json:"movie_id,omitempty"`
-	StarpiCastUid int32                  `protobuf:"varint,9,opt,name=starpi_cast_uid,json=starpiCastUid,proto3" json:"starpi_cast_uid,omitempty"`
-	CastId        int32                  `protobuf:"varint,10,opt,name=cast_id,json=castId,proto3" json:"cast_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// int32 starpi_cast_uid = 9;
+	CastId           int32  `protobuf:"varint,10,opt,name=cast_id,json=castId,proto3" json:"cast_id,omitempty"`
+	StarpiCastUidStr string `protobuf:"bytes,11,opt,name=starpi_cast_uid_str,json=starpiCastUidStr,proto3" json:"starpi_cast_uid_str,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Cast) Reset() {
@@ -839,18 +840,18 @@ func (x *Cast) GetMovieId() int32 {
 	return 0
 }
 
-func (x *Cast) GetStarpiCastUid() int32 {
-	if x != nil {
-		return x.StarpiCastUid
-	}
-	return 0
-}
-
 func (x *Cast) GetCastId() int32 {
 	if x != nil {
 		return x.CastId
 	}
 	return 0
+}
+
+func (x *Cast) GetStarpiCastUidStr() string {
+	if x != nil {
+		return x.StarpiCastUidStr
+	}
+	return ""
 }
 
 type Cast_Service_Producer_Response struct {
@@ -1418,17 +1419,18 @@ const file_producer_service_proto_rawDesc = "" +
 	"\bcategory\x18\a \x01(\tR\bcategory\x12\x18\n" +
 	"\asubject\x18\b \x01(\tR\asubjectJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"3\n" +
 	"\x1bSend_Mail_Producer_Response\x12\x14\n" +
-	"\x05error\x18\x01 \x01(\tR\x05error\"\xa1\x02\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error\"\xae\x02\n" +
 	"\x04Cast\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x127\n" +
 	"\x04type\x18\x05 \x01(\x0e2#.rabbitmq_producer_service.CastTypeR\x04type\x12%\n" +
 	"\x0echaracter_name\x18\x06 \x01(\tR\rcharacterName\x12\x1b\n" +
 	"\tphoto_url\x18\a \x01(\tR\bphotoUrl\x12\x19\n" +
-	"\bmovie_id\x18\b \x01(\x05R\amovieId\x12&\n" +
-	"\x0fstarpi_cast_uid\x18\t \x01(\x05R\rstarpiCastUid\x12\x17\n" +
+	"\bmovie_id\x18\b \x01(\x05R\amovieId\x12\x17\n" +
 	"\acast_id\x18\n" +
-	" \x01(\x05R\x06castIdJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"P\n" +
+	" \x01(\x05R\x06castId\x12-\n" +
+	"\x13starpi_cast_uid_str\x18\v \x01(\tR\x10starpiCastUidStrJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\t\x10\n" +
+	"\"P\n" +
 	"\x1eCast_Service_Producer_Response\x12\x14\n" +
 	"\x05error\x18\x01 \x01(\tR\x05error\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*l\n" +

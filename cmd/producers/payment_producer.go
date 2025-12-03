@@ -392,49 +392,69 @@ func (p *Producer) Send_Mail_Producer(contactInfo *rabbitmq_producer.Send_Mail_P
 
 }
 
-func (p *Producer) Add_Cast_Producer(cast models.CastAndCrew) error {
+func (p *Producer) Add_Cast_Producer(cast ExtendedCastAndCrew) error {
 
-	// q, err := p.Conn.QueueDeclare("strapi_create", true, false, false, false, nil)
+	q, err := p.Conn.QueueDeclare("strapi_create", true, false, false, false, nil)
 
-	// if err != nil {
-	// 	return err
-	// }
+	if err != nil {
+		fmt.Println("error declaring a queue : ", err.Error())
+		return err
+	}
 
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
-	// type Event struct {
-	// 	Action string `json:"action"`
-	// 	Model  string `json:"model"`
-	// 	Data   any    `json:"data"`
-	// }
+	type Event struct {
+		Action string `json:"action"`
+		Model  string `json:"model"`
+		Data   any    `json:"data"`
+	}
 
-	// castEvent := Event{
-	// 	Action: "create",
-	// 	Model:  "cast-and-crew",
-	// 	Data:   cast,
-	// }
+	castEvent := Event{
+		Action: "create",
+		Model:  "cast-and-crew",
+		Data:   cast,
+	}
 
-	// err = p.Conn.PublishWithContext(
-	// 	ctx,
-	// 	"",
-	// 	q.Name,
-	// 	false,
-	// 	false,
-	// 	amqp091.Publishing{
-	// 		ContentType: "application/json",
-	// 		Body:        fmt.Appendf(nil, "%v", castEvent),
-	// 		Timestamp:   time.Now(),
-	// 	},
-	// )
+	err = p.Conn.ExchangeDeclare(
+		"strapi_create_exchange",
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
 
-	// if err != nil {
-	// 	return err
-	// }
+	if err != nil {
+		fmt.Println("error declaring exchange : ", err.Error())
+		return err
+	}
 
-	// fmt.Println("Published cast creation message in the queue")
+	payload, err := json.Marshal(castEvent)
+	if err != nil {
+		return err
+	}
 
-	fmt.Println("inside cast and crew producer service")
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"strapi_create_exchange",
+		q.Name,
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType: "application/json",
+			Body:        payload,
+			Timestamp:   time.Now(),
+		},
+	)
+
+	if err != nil {
+		fmt.Println("error publishing message to the queue : ", err.Error())
+		return err
+	}
+
+	fmt.Println("Published cast creation message in the queue")
 
 	return nil
 }

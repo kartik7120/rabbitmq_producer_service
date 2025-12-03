@@ -75,6 +75,7 @@ func main() {
 	}
 
 	go func() {
+		fmt.Println("Listening on port 1105")
 		if err := server.Serve(lis); err != nil {
 			fmt.Println("error starting the rabbitmq producer service")
 			panic(err)

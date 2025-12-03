@@ -10,6 +10,11 @@ import (
 	"github.com/kartik7120/booking_rabbitmq_producer_service/cmd/models"
 )
 
+type ExtendedCastAndCrew struct {
+	models.CastAndCrew
+	StarpiCastUid string `json:"strapi_cast_uid"`
+}
+
 type Rabbitmq_Producer_Service struct {
 	rabbitmq_producer.UnimplementedRabbitmqProducerServiceServer
 	Producer Producer
@@ -402,13 +407,18 @@ func (r *Rabbitmq_Producer_Service) Cast_Service_Producer(ctx context.Context, i
 
 	done := make(chan error, 1)
 
-	var castInfo models.CastAndCrew
+	var castInfo ExtendedCastAndCrew
 
 	castInfo.Name = in.Name
 	castInfo.Character = in.CharacterName
 	castInfo.MovieID = uint(in.MovieId)
 	castInfo.PhotoURL = in.PhotoUrl
 	castInfo.Type = in.Type.String()
+	castInfo.StarpiCastUid = in.StarpiCastUidStr
+
+	fmt.Println("inside the cast service producer grpc method")
+
+	fmt.Printf("cast struct send to producer : %#v\n", castInfo)
 
 	go func() {
 		err := r.Producer.Add_Cast_Producer(castInfo)
