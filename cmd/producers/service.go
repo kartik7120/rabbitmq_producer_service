@@ -15,6 +15,11 @@ type ExtendedCastAndCrew struct {
 	StarpiCastUid string `json:"strapi_cast_uid"`
 }
 
+type MovieTimeSlotPayload struct {
+	models.MovieTimeSlot
+	StarpiMovieUid string `json:"strapi_movie_uid"`
+}
+
 type Rabbitmq_Producer_Service struct {
 	rabbitmq_producer.UnimplementedRabbitmqProducerServiceServer
 	Producer Producer
@@ -437,5 +442,118 @@ func (r *Rabbitmq_Producer_Service) Cast_Service_Producer(ctx context.Context, i
 	return &rabbitmq_producer.Cast_Service_Producer_Response{
 		Error:   "",
 		Message: "Cast message sent to the queue successfully",
+	}, nil
+}
+
+func (r *Rabbitmq_Producer_Service) Delete_Cast_Producer(ctx context.Context, in *rabbitmq_producer.Cast) (*rabbitmq_producer.Cast_Service_Producer_Response, error) {
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+
+	var castInfo ExtendedCastAndCrew
+
+	castInfo.Name = in.Name
+	castInfo.Character = in.CharacterName
+	castInfo.MovieID = uint(in.MovieId)
+	castInfo.PhotoURL = in.PhotoUrl
+	castInfo.Type = in.Type.String()
+	castInfo.StarpiCastUid = in.StarpiCastUidStr
+	castInfo.CastAndCrew.ID = uint(in.CastId)
+
+	fmt.Println("inside the delete cast service producer grpc method")
+
+	fmt.Printf("cast struct send to delete producer : %#v\n", castInfo)
+
+	go func() {
+		err := r.Producer.Delete_Cast_Producer(castInfo)
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return nil, err
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &rabbitmq_producer.Cast_Service_Producer_Response{
+		Error:   "",
+		Message: "Delete Cast message sent to the queue successfully",
+	}, nil
+}
+
+func (r *Rabbitmq_Producer_Service) Movie_Time_Slot_Producer(ctx context.Context, in *rabbitmq_producer.Movie_Time_Slot_Strapi) (*rabbitmq_producer.Movie_Time_Slot_Producer_Response, error) {
+
+	fmt.Println("inside the movie time slot producer grpc method")
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+
+	var movieTimeSlotPayload MovieTimeSlotPayload
+
+	startTime, err := time.Parse(time.RFC3339, in.Starttime)
+
+	if err != nil {
+		fmt.Printf("an error occured while parsing start time %s", err.Error())
+		return nil, err
+	}
+
+	endtime, err := time.Parse(time.RFC3339, in.Endtime)
+
+	if err != nil {
+		fmt.Printf("an error occured while parsing end time %s", err.Error())
+		return nil, err
+	}
+
+	date, err := time.Parse("2006-01-02", in.Date)
+
+	if err != nil {
+		fmt.Printf("an error occured while parsing date %s", err.Error())
+		return nil, err
+	}
+
+	movieTimeSlotPayload.StartTime = startTime
+	movieTimeSlotPayload.EndTime = endtime
+	movieTimeSlotPayload.Duration = int(in.Duration)
+	movieTimeSlotPayload.MovieID = uint(in.MovieId)
+	movieTimeSlotPayload.Date = date
+	movieTimeSlotPayload.VenueID = uint(in.VenueId)
+	movieTimeSlotPayload.StarpiMovieUid = in.StarpiMovieTimeslotUid
+
+	switch in.Format {
+	case rabbitmq_producer.MovieFormat_TWO_D:
+		movieTimeSlotPayload.MovieFormat = "2D"
+	case rabbitmq_producer.MovieFormat_THREE_D:
+		movieTimeSlotPayload.MovieFormat = "3D"
+	case rabbitmq_producer.MovieFormat_IMAX:
+		movieTimeSlotPayload.MovieFormat = "IMAX"
+	default:
+		movieTimeSlotPayload.MovieFormat = "UNKNOWN"
+	}
+
+	go func() {
+		err := r.Producer.Movie_Time_Slot_Producer(movieTimeSlotPayload)
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			fmt.Printf("error occured while executing movie time slot producer")
+			return nil, err
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &rabbitmq_producer.Movie_Time_Slot_Producer_Response{
+		Error:   "",
+		Message: "Movie Time Slot message sent to the queue successfully",
 	}, nil
 }

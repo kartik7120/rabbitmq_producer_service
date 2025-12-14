@@ -2,14 +2,17 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type CastAndCrew struct {
+	gorm.Model
 	Type      string `json:"type" gorm:"not null"` // cast or crew
 	Name      string `json:"name" gorm:"not null"`
 	Character string `json:"character"`
 	PhotoURL  string `json:"photo_url"`
-	MovieID   uint
+	MovieID   uint   `json:"movie_id"`
 }
 
 type SeatMatrix struct {

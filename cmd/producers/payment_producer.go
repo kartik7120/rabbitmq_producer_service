@@ -321,58 +321,35 @@ func (p *Producer) Unlock_Seats(seatsIds []int) error {
 
 func (p *Producer) Send_Mail_Producer(contactInfo *rabbitmq_producer.Send_Mail_Producer_Request) error {
 
+	// 1. Ensure exchange exists (idempotent)
 	err := p.Conn.ExchangeDeclare(
 		"send_mail",
 		"direct",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	q, err := p.Conn.QueueDeclare(
-		"send_mail_queue2",
-		true,
+		true, // durable
 		false,
 		false,
 		false,
 		nil,
 	)
-
 	if err != nil {
 		return err
 	}
 
-	err = p.Conn.QueueBind(
-		q.Name,
-		"send_mail_key",
-		"send_mail",
-		false,
-		nil,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+	// 2. Marshal payload
 	bodyBytes, err := json.Marshal(contactInfo)
-
 	if err != nil {
 		return err
 	}
+
+	// Optional: generate a unique ID for tracking
+	// 3. Publish
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	err = p.Conn.PublishWithContext(
 		ctx,
-		"send_mail",
-		"send_mail_key",
+		"send_mail",     // exchange
+		"send_mail_key", // routing key
 		false,
 		false,
 		amqp091.Publishing{
@@ -386,34 +363,106 @@ func (p *Producer) Send_Mail_Producer(contactInfo *rabbitmq_producer.Send_Mail_P
 		return err
 	}
 
-	fmt.Println("Published lock seats message in the queue")
+	fmt.Println("Published send_mail message")
 
 	return nil
-
 }
 
 func (p *Producer) Add_Cast_Producer(cast ExtendedCastAndCrew) error {
 
-	q, err := p.Conn.QueueDeclare("strapi_create", true, false, false, false, nil)
-
+	// Declare queue
+	q, err := p.Conn.QueueDeclare(
+		"strapi_create",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
 	if err != nil {
-		fmt.Println("error declaring a queue : ", err.Error())
-		return err
+		return fmt.Errorf("queue declare failed: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
+	// Declare exchange
+	err = p.Conn.ExchangeDeclare(
+		"strapi_create_exchange",
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("exchange declare failed: %w", err)
+	}
 
-	type Event struct {
+	// Bind queue → exchange
+	err = p.Conn.QueueBind(
+		q.Name,
+		"cast_creation", // routing key
+		"strapi_create_exchange",
+		false,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("queue bind failed: %w", err)
+	}
+
+	// Prepare message
+	castEvent := struct {
 		Action string `json:"action"`
 		Model  string `json:"model"`
 		Data   any    `json:"data"`
-	}
-
-	castEvent := Event{
+	}{
 		Action: "create",
 		Model:  "cast-and-crew",
 		Data:   cast,
+	}
+
+	payload, err := json.Marshal(castEvent)
+	if err != nil {
+		return err
+	}
+
+	// Publish with unique ID
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"strapi_create_exchange",
+		"cast_creation",
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType:   "application/json",
+			Body:          payload,
+			Timestamp:     time.Now(),
+			MessageId:     cast.StarpiCastUid,
+			CorrelationId: cast.StarpiCastUid,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("publish failed: %w", err)
+	}
+
+	fmt.Println("Published cast creation message in the queue")
+	return nil
+}
+
+func (p *Producer) Delete_Cast_Producer(cast ExtendedCastAndCrew) error {
+	q, err := p.Conn.QueueDeclare(
+		"strapi_create",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue declare failed: %w", err)
 	}
 
 	err = p.Conn.ExchangeDeclare(
@@ -427,34 +476,142 @@ func (p *Producer) Add_Cast_Producer(cast ExtendedCastAndCrew) error {
 	)
 
 	if err != nil {
-		fmt.Println("error declaring exchange : ", err.Error())
-		return err
+		return fmt.Errorf("exchange declare failed: %w", err)
 	}
 
-	payload, err := json.Marshal(castEvent)
+	err = p.Conn.QueueBind(
+		q.Name,
+		"cast_deletion",
+		"strapi_create_exchange",
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue bind failed: %w", err)
+	}
+
+	payload := struct {
+		Action string `json:"action"`
+		Model  string `json:"model"`
+		Data   any    `json:"data"`
+	}{
+		Action: "delete",
+		Model:  "cast-and-crew",
+		Data:   cast,
+	}
+
+	body, err := json.Marshal(payload)
+
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
 	err = p.Conn.PublishWithContext(
 		ctx,
 		"strapi_create_exchange",
-		q.Name,
+		"cast_deletion",
 		false,
 		false,
 		amqp091.Publishing{
-			ContentType: "application/json",
-			Body:        payload,
-			Timestamp:   time.Now(),
+			ContentType:   "application/json",
+			Body:          body,
+			Timestamp:     time.Now(),
+			MessageId:     cast.StarpiCastUid,
+			CorrelationId: cast.StarpiCastUid,
 		},
 	)
 
 	if err != nil {
-		fmt.Println("error publishing message to the queue : ", err.Error())
+		return fmt.Errorf("publish failed: %w", err)
+	}
+
+	fmt.Println("Published cast deletion message in the queue")
+	return nil
+}
+
+func (p *Producer) Movie_Time_Slot_Producer(payload MovieTimeSlotPayload) error {
+
+	q, err := p.Conn.QueueDeclare(
+		"strapi_create",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue declare failed: %w", err)
+	}
+
+	err = p.Conn.ExchangeDeclare(
+		"strapi_create_exchange",
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("exchange declare failed: %w", err)
+	}
+
+	err = p.Conn.QueueBind(
+		q.Name,
+		"movie_time_slot_creation",
+		"strapi_create_exchange",
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue bind failed: %w", err)
+	}
+
+	payloadEvent := struct {
+		Action string `json:"action"`
+		Model  string `json:"model"`
+		Data   any    `json:"data"`
+	}{
+		Action: "create",
+		Model:  "movie-time-slot",
+		Data:   payload,
+	}
+
+	body, err := json.Marshal(payloadEvent)
+
+	if err != nil {
 		return err
 	}
 
-	fmt.Println("Published cast creation message in the queue")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"strapi_create_exchange",
+		"movie_time_slot_creation",
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType:   "application/json",
+			Body:          body,
+			Timestamp:     time.Now(),
+			MessageId:     payload.StarpiMovieUid,
+			CorrelationId: payload.StarpiMovieUid,
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("publish failed: %w", err)
+	}
+
+	fmt.Println("Published movie time slot creation message in the queue")
 	return nil
 }
