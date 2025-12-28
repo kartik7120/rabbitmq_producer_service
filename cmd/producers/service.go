@@ -20,6 +20,11 @@ type MovieTimeSlotPayload struct {
 	StarpiMovieUid string `json:"strapi_movie_uid"`
 }
 
+type MoviePayload struct {
+	models.Movie
+	StarpiMovieUid string `json:"strapi_movie_uid"`
+}
+
 type Rabbitmq_Producer_Service struct {
 	rabbitmq_producer.UnimplementedRabbitmqProducerServiceServer
 	Producer Producer
@@ -555,5 +560,94 @@ func (r *Rabbitmq_Producer_Service) Movie_Time_Slot_Producer(ctx context.Context
 	return &rabbitmq_producer.Movie_Time_Slot_Producer_Response{
 		Error:   "",
 		Message: "Movie Time Slot message sent to the queue successfully",
+	}, nil
+}
+
+func (r *Rabbitmq_Producer_Service) Movie_Producer(ctx context.Context, in *rabbitmq_producer.Movie_Strapi) (*rabbitmq_producer.Movie_Time_Slot_Producer_Response, error) {
+
+	fmt.Println("inside the movie producer grpc method")
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+
+	var moviePayload MoviePayload
+
+	releaseDate, err := time.Parse("2006-01-02", in.ReleaseDate)
+
+	if err != nil {
+		fmt.Printf("an error occured while parsing release date %s", err.Error())
+		return nil, err
+	}
+
+	moviePayload.Title = in.Title
+	moviePayload.Description = in.Description
+	moviePayload.Duration = int(in.Duration)
+	moviePayload.Language = in.Languages
+	moviePayload.ReleaseDate = releaseDate
+	moviePayload.Type = in.Type
+	moviePayload.PosterURL = in.PosterUrl
+	moviePayload.TrailerURL = in.TrailerUrl
+	moviePayload.StarpiMovieUid = in.StarpiMovieUid
+	moviePayload.MovieResolution = []string{in.MovieResolution}
+	moviePayload.ScreenWidePosterURL = in.ScreenWidePoster
+	moviePayload.LogoImageURL = in.LogoPosterURL
+	moviePayload.TrailerURL = in.TrailerUrl
+	moviePayload.StarpiMovieUid = in.StarpiMovieUid
+
+	go func() {
+		err := r.Producer.Movie_Producer(moviePayload)
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			fmt.Printf("error occured while executing movie producer")
+			return nil, err
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &rabbitmq_producer.Movie_Time_Slot_Producer_Response{
+		Error:   "",
+		Message: "Movie message sent to the queue successfully",
+	}, nil
+}
+
+func (r *Rabbitmq_Producer_Service) Delete_Movie_Producer(ctx context.Context, in *rabbitmq_producer.Movie_Strapi) (*rabbitmq_producer.Movie_Time_Slot_Producer_Response, error) {
+
+	fmt.Println("inside the delete movie producer")
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+
+	var moviePayload MoviePayload
+
+	moviePayload.StarpiMovieUid = in.StarpiMovieUid
+	moviePayload.ID = uint(in.MovieId)
+
+	go func() {
+		err := r.Producer.Delete_Movie_Producer(moviePayload)
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			fmt.Printf("error occured while executing delete movie producer")
+			return nil, err
+		}
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &rabbitmq_producer.Movie_Time_Slot_Producer_Response{
+		Error:   "",
+		Message: "Delete Movie message sent to the queue successfully",
 	}, nil
 }

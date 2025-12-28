@@ -615,3 +615,177 @@ func (p *Producer) Movie_Time_Slot_Producer(payload MovieTimeSlotPayload) error 
 	fmt.Println("Published movie time slot creation message in the queue")
 	return nil
 }
+
+func (p *Producer) Movie_Producer(payload MoviePayload) error {
+	q, err := p.Conn.QueueDeclare(
+		"strapi_create",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue declare failed: %w", err)
+	}
+
+	err = p.Conn.ExchangeDeclare(
+		"strapi_create_exchange",
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("exchange declare failed: %w", err)
+	}
+
+	err = p.Conn.QueueBind(
+		q.Name,
+		"movie_creation",
+		"strapi_create_exchange",
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue bind failed: %w", err)
+	}
+
+	payloadEvent := struct {
+		Action string `json:"action"`
+		Model  string `json:"model"`
+		Data   any    `json:"data"`
+	}{
+		Action: "create",
+		Model:  "movie",
+		Data:   payload,
+	}
+
+	body, err := json.Marshal(payloadEvent)
+
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"strapi_create_exchange",
+		"movie_creation",
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType:   "application/json",
+			Body:          body,
+			Timestamp:     time.Now(),
+			MessageId:     payload.StarpiMovieUid,
+			CorrelationId: payload.StarpiMovieUid,
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("publish failed: %w", err)
+	}
+
+	fmt.Println("Published movie creation message in the queue")
+	return nil
+}
+
+func (p *Producer) Delete_Movie_Producer(payload MoviePayload) error {
+	q, err := p.Conn.QueueDeclare(
+		"strapi_create",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue declare failed: %w", err)
+	}
+
+	err = p.Conn.ExchangeDeclare(
+		"strapi_create_exchange",
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("exchange declare failed: %w", err)
+	}
+
+	err = p.Conn.QueueBind(
+		q.Name,
+		"movie_deletion",
+		"strapi_create_exchange",
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue bind failed: %w", err)
+	}
+
+	fmt.Printf("payload received in delete movie producer : %+v", payload)
+
+	payloadEvent := struct {
+		Action string `json:"action"`
+		Model  string `json:"model"`
+		Data   any    `json:"data"`
+	}{
+		Action: "delete",
+		Model:  "movie",
+		Data:   payload,
+	}
+
+	body, err := json.Marshal(payloadEvent)
+
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	err = p.Conn.PublishWithContext(
+		ctx,
+		"strapi_create_exchange",
+		"movie_deletion",
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType:   "application/json",
+			Body:          body,
+			Timestamp:     time.Now(),
+			MessageId:     payload.StarpiMovieUid,
+			CorrelationId: payload.StarpiMovieUid,
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("publish failed: %w", err)
+	}
+
+	fmt.Println("Published movie deletion message in the queue")
+	return nil
+}
+
+type VenuePayload struct {
+	Venueid string `json:"venueid"`
+}
+
+func (p *Producer) Add_Venue(payload VenuePayload) error {
+	return nil
+}
