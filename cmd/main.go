@@ -33,7 +33,13 @@ func connectRabbitMQ(url string, retries int, delay time.Duration) (*amqp091.Con
 func main() {
 	fmt.Println("RabbitMQ Producer Service is running...")
 
-	client, err := connectRabbitMQ("amqp://guest:guest@rabbitmq_booking_app:5672/", 10, 3*time.Second)
+	rabbitmqInstanceUrl := os.Getenv("RABBITMQ_URL")
+
+	if rabbitmqInstanceUrl == "" {
+		rabbitmqInstanceUrl = "amqp://guest:guest@rabbitmq_booking_app:5672/"
+	}
+
+	client, err := connectRabbitMQ(rabbitmqInstanceUrl, 10, 3*time.Second)
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
@@ -58,7 +64,13 @@ func main() {
 
 	var opts []grpc.ServerOption
 
-	lis, err := net.Listen("tcp", ":1105")
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "1105"
+	}
+
+	lis, err := net.Listen("tcp", ":"+port)
 
 	server := grpc.NewServer(opts...)
 
